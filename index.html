@@ -3,25 +3,21 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>台指決策核心 V5.0</title>
+    <title>台指決策核心 V7.0</title>
     <style>
-        :root { --bg: #0f172a; --card: #1e293b; --input-bg: #334155; --text: #f1f5f9; --red: #ef4444; --green: #10b981; --gold: #f59e0b; --blue: #3b82f6; }
+        :root { --bg: #0f172a; --card: #1e293b; --input-bg: #334155; --text: #f1f5f9; --red: #ef4444; --green: #10b981; --gold: #f59e0b; --blue: #3b82f6; --purple: #a855f7; }
         body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background-color: var(--bg); color: var(--text); margin: 0; padding: 15px; padding-bottom: 120px; }
         .container { max-width: 550px; margin: 0 auto; background: var(--card); border-radius: 16px; border: 1px solid #475569; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
         
-        /* 頂部視覺 */
         .header { background: linear-gradient(to right, #0f172a, #1e293b); padding: 20px; text-align: center; border-bottom: 1px solid #334155; }
         h1 { margin: 0; font-size: 20px; font-weight: 800; letter-spacing: 1px; color: #fff; }
         .subtitle { font-size: 12px; color: #94a3b8; margin-top: 5px; }
 
-        /* 按鈕群 */
         .btn-group { padding: 15px; display: flex; gap: 10px; }
         .btn { flex: 1; padding: 12px; border: none; border-radius: 8px; font-weight: 700; cursor: pointer; transition: 0.2s; color: white; display: flex; align-items: center; justify-content: center; gap: 5px; }
         .btn-auto { background: var(--blue); }
-        .btn-auto:active { opacity: 0.8; transform: scale(0.98); }
         .btn-clear { background: #475569; max-width: 80px; }
 
-        /* 輸入區塊 */
         .section { padding: 0 20px 15px 20px; }
         .section-title { font-size: 12px; color: #94a3b8; font-weight: 700; text-transform: uppercase; margin-bottom: 10px; display: flex; align-items: center; gap: 8px; }
         .section-title::before { content: ''; width: 3px; height: 12px; background: var(--blue); display: block; }
@@ -29,36 +25,31 @@
         .row { display: flex; gap: 10px; margin-bottom: 10px; }
         .col { flex: 1; }
         label { display: block; font-size: 11px; color: #cbd5e1; margin-bottom: 4px; }
-        input { width: 100%; background: var(--input-bg); border: 1px solid #475569; color: white; padding: 10px; border-radius: 6px; font-size: 16px; font-weight: 600; text-align: center; outline: none; box-sizing: border-box; }
-        input:focus { border-color: var(--blue); background: #1e293b; }
+        input { width: 100%; background: var(--input-bg); border: 1px solid #475569; color: white; padding: 12px; border-radius: 8px; font-size: 18px; font-weight: 700; text-align: center; outline: none; box-sizing: border-box; transition: 0.2s; }
+        input:focus { border-color: var(--blue); background: #1e293b; transform: scale(1.02); }
         
-        /* 特定輸入框顏色 */
-        .hl-input input { border-color: var(--gold); background: #3d2b08; } 
-        .foreign-input input { border-color: #818cf8; background: #312e81; }
+        /* 特殊輸入框樣式 */
+        .hl-input input { border-color: var(--gold); background: #422006; color: #fbbf24; } 
+        .main-force-input input { border-color: var(--purple); background: #3b0764; color: #d8b4fe; font-size: 20px; } /* 主力專用色 */
         .long-input input { border-color: var(--red); background: #450a0a; }
         .short-input input { border-color: var(--green); background: #064e3b; }
 
-        /* 儀表板 (Dashboard) */
+        /* 儀表板 */
         .dashboard { background: #020617; padding: 20px; margin: 20px; border-radius: 12px; border: 1px solid #1e293b; text-align: center; }
         .verdict { font-size: 28px; font-weight: 900; margin-bottom: 5px; }
         .confidence { font-size: 13px; color: #94a3b8; margin-bottom: 15px; }
-        .progress-bar { height: 6px; background: #333; border-radius: 3px; overflow: hidden; margin-bottom: 15px; }
+        .progress-bar { height: 8px; background: #333; border-radius: 4px; overflow: hidden; margin-bottom: 15px; }
         .progress-fill { height: 100%; width: 50%; transition: 0.5s; }
 
-        /* 目標價卡片 */
         .target-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
         .target-card { background: #1e293b; border: 1px solid #334155; padding: 10px; border-radius: 8px; text-align: center; }
         .target-label { font-size: 11px; color: #94a3b8; }
-        .target-price { font-size: 18px; font-weight: 800; margin-top: 2px; }
-        .target-desc { font-size: 10px; opacity: 0.7; }
+        .target-price { font-size: 20px; font-weight: 800; margin-top: 2px; }
 
-        /* 價差條 */
         .spread-box { text-align: center; font-size: 12px; padding: 5px; background: #0f172a; border-radius: 4px; margin-bottom: 10px; color: #64748b; }
-
         .red-text { color: var(--red); }
         .green-text { color: var(--green); }
         .gray-text { color: #94a3b8; }
-        
         #loading { display: none; margin-left: 5px; animation: spin 1s infinite linear; }
         @keyframes spin { 100% { transform: rotate(360deg); } }
     </style>
@@ -67,8 +58,8 @@
 
 <div class="container">
     <div class="header">
-        <h1>🚀 台指決策核心 V5.0</h1>
-        <div class="subtitle">外資細分 • 多空分項 • 智能運算</div>
+        <h1>🚀 台指決策核心 V7.0</h1>
+        <div class="subtitle">主力總和 • 極速輸入 • 智能運算</div>
     </div>
 
     <div class="btn-group">
@@ -79,7 +70,7 @@
     </div>
 
     <div class="section">
-        <div class="section-title">1. 價格與動能 (Price Action)</div>
+        <div class="section-title">1. 價格與動能</div>
         <div class="row">
             <div class="col">
                 <label>加權指數</label>
@@ -93,22 +84,18 @@
         <div class="row">
             <div class="col hl-input">
                 <label>📍 台指期 (基準)</label>
-                <input type="number" id="tx" placeholder="輸入目前點數" oninput="calc()">
+                <input type="number" id="tx" placeholder="輸入點數" oninput="calc()">
             </div>
         </div>
         <div id="spread-display" class="spread-box">等待輸入台指期...</div>
     </div>
 
     <div class="section">
-        <div class="section-title">2. 大戶籌碼 (Smart Money)</div>
+        <div class="section-title">2. 主力籌碼 (Big Money)</div>
         <div class="row">
-            <div class="col foreign-input">
-                <label>👽 大外資淨口數</label>
-                <input type="number" id="foreign_big" placeholder="-20000" oninput="calc()">
-            </div>
-            <div class="col foreign-input">
-                <label>👾 小外資淨口數</label>
-                <input type="number" id="foreign_small" placeholder="3000" oninput="calc()">
+            <div class="col main-force-input">
+                <label>🦁 主力/法人 合計淨口數</label>
+                <input type="number" id="main_force" placeholder="例如 -15000" oninput="calc()">
             </div>
         </div>
         <div class="row">
@@ -120,7 +107,7 @@
     </div>
 
     <div class="section">
-        <div class="section-title">3. 散戶籌碼 (Counter Indicator)</div>
+        <div class="section-title">3. 散戶指標 (反向)</div>
         <div class="row">
             <div class="col long-input">
                 <label>小台-多單</label>
@@ -145,7 +132,7 @@
 
     <div class="dashboard">
         <div id="verdict" class="verdict gray-text">等待數據</div>
-        <div id="confidence" class="confidence">請填寫上方所有因子</div>
+        <div id="confidence" class="confidence">請填寫數據以進行 AI 判讀</div>
         
         <div class="progress-bar">
             <div id="prob-bar" class="progress-fill" style="background:#64748b; width:50%;"></div>
@@ -165,7 +152,7 @@
 </div>
 
 <script>
-    const ids = ['spot', 'atr', 'tx', 'foreign_big', 'foreign_small', 'pc', 'mtx_long', 'mtx_short', 'tmf_long', 'tmf_short'];
+    const ids = ['spot', 'atr', 'tx', 'main_force', 'pc', 'mtx_long', 'mtx_short', 'tmf_long', 'tmf_short'];
 
     window.onload = () => {
         ids.forEach(id => {
@@ -186,7 +173,6 @@
             const quotes = result.indicators.quote[0];
             const last = result.meta.regularMarketPrice;
 
-            // ATR Calculation
             let sum = 0, count = 0;
             for(let i=0; i<quotes.high.length; i++) {
                 if(quotes.high[i]) { sum += (quotes.high[i] - quotes.low[i]); count++; }
@@ -199,26 +185,25 @@
             if(!document.getElementById('tx').value) document.getElementById('tx').value = Math.round(last);
 
             calc();
-        } catch(e) { alert('抓取失敗，請檢查網路或手動輸入'); }
+        } catch(e) { alert('抓取失敗'); }
         icon.style.display = 'none';
     }
 
     function calc() {
-        // Save inputs
+        // Save
         ids.forEach(id => {
             const el = document.getElementById(id);
             localStorage.setItem(id, el.value);
         });
 
-        // Get Values
+        // Values
         const tx = parseInt(document.getElementById('tx').value);
         const spot = parseInt(document.getElementById('spot').value);
         const atr = parseInt(document.getElementById('atr').value) || 250;
         
-        const f_big = parseInt(document.getElementById('foreign_big').value) || 0;
-        const f_small = parseInt(document.getElementById('foreign_small').value) || 0;
-        const total_foreign = f_big + f_small; // 外資總力道
-
+        // 主力直接取用單一欄位
+        const main_force = parseInt(document.getElementById('main_force').value) || 0;
+        
         const pc = parseFloat(document.getElementById('pc').value) || 100;
         
         // 散戶細項
@@ -227,42 +212,38 @@
         const tmf_L = parseInt(document.getElementById('tmf_long').value) || 0;
         const tmf_S = parseInt(document.getElementById('tmf_short').value) || 0;
         
-        // 散戶淨單計算 (微台權重 0.2)
         const retail_net = (mtx_L - mtx_S) + ((tmf_L - tmf_S) * 0.2);
 
-        // --- 核心評分演算法 ---
+        // --- 核心評分 V7.0 ---
         let score = 0; 
         let reasons = [];
 
-        // 1. 外資權重 (趨勢)
-        if (total_foreign > 10000) score += 30;
-        else if (total_foreign > 5000) score += 15;
-        else if (total_foreign < -20000) score -= 40; 
-        else if (total_foreign < -10000) score -= 25;
+        // 1. 主力權重 (最重要)
+        if (main_force > 10000) score += 35;
+        else if (main_force > 3000) score += 15;
+        else if (main_force < -10000) score -= 35; 
+        else if (main_force < -3000) score -= 15;
 
         // 2. 散戶權重 (反向)
-        if (retail_net > 3000) score -= 25; // 散戶多 -> 空
+        if (retail_net > 3000) score -= 25; 
         else if (retail_net > 1500) score -= 10;
-        else if (retail_net < -3000) score += 25; // 散戶空 -> 多
+        else if (retail_net < -3000) score += 25; 
         else if (retail_net < -1500) score += 10;
 
-        // 3. P/C Ratio (莊家)
+        // 3. P/C Ratio
         if (pc > 110) score += 15;
         else if (pc < 90) score -= 15;
 
-        // 4. 價差 (動能)
-        let spread = 0;
-        const spreadBox = document.getElementById('spread-display');
+        // 4. 價差
         if (tx && spot) {
-            spread = tx - spot;
-            spreadBox.innerText = `價差：${spread > 0 ? '+' : ''}${spread}`;
-            spreadBox.className = spread > 0 ? 'spread-box red-text' : 'spread-box green-text';
-            
-            if (spread > 80) score += 10; 
-            else if (spread < -80) score -= 10; 
+            let spread = tx - spot;
+            document.getElementById('spread-display').innerText = `價差：${spread > 0 ? '+' : ''}${spread}`;
+            document.getElementById('spread-display').className = spread > 0 ? 'spread-box red-text' : 'spread-box green-text';
+            if (spread > 80) score += 5; 
+            else if (spread < -80) score -= 5; 
         }
 
-        // --- 輸出結果 ---
+        // --- 輸出 ---
         const verdict = document.getElementById('verdict');
         const conf = document.getElementById('confidence');
         const bar = document.getElementById('prob-bar');
@@ -272,15 +253,14 @@
 
         targets.style.opacity = "1";
         
-        // 勝率映射
-        let prob = 50 + (score / 2);
+        let prob = 50 + (score / 1.8);
         if (prob > 95) prob = 95;
         if (prob < 5) prob = 5;
 
         if (score >= 20) {
             verdict.innerText = "🚀 偏多操作";
             verdict.className = "verdict red-text";
-            conf.innerText = `AI 勝率預估：${prob.toFixed(0)}% (散戶偏空/外資偏多)`;
+            conf.innerText = `主力(${main_force}) 做多，AI 勝率預估：${prob.toFixed(0)}%`;
             bar.style.background = `linear-gradient(to right, #ef4444 ${prob}%, #333 ${prob}%)`;
             
             document.getElementById('tp1').innerText = Math.round(tx + atr);
@@ -291,7 +271,7 @@
         } else if (score <= -20) {
             verdict.innerText = "📉 偏空操作";
             verdict.className = "verdict green-text";
-            conf.innerText = `AI 勝率預估：${(100-prob).toFixed(0)}% (散戶偏多/外資偏空)`;
+            conf.innerText = `主力(${main_force}) 做空，AI 勝率預估：${(100-prob).toFixed(0)}%`;
             bar.style.background = `linear-gradient(to right, #10b981 ${100-prob}%, #333 ${100-prob}%)`;
 
             document.getElementById('tp1').innerText = Math.round(tx - atr);
@@ -302,7 +282,7 @@
         } else {
             verdict.innerText = "⚖️ 區間震盪";
             verdict.className = "verdict gray-text";
-            conf.innerText = "多空籌碼互斥，建議觀望或短做";
+            conf.innerText = "主力方向不明或與散戶抵銷，建議觀望";
             bar.style.background = "#64748b";
             
             document.getElementById('tp1').innerText = Math.round(tx + atr * 0.5);
