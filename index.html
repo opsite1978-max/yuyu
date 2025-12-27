@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>台指決策核心系統</title>
+    <style>
+        :root { --bg: #0f172a; --card: #1e293b; --input-bg: #334155; --text: #f1f5f9; --red: #ef4444; --green: #10b981; --gold: #f59e0b; --blue: #3b82f6; }
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background-color: var(--bg); color: var(--text); margin: 0; padding: 15px; padding-bottom: 120px; }
+        .container { max-width: 550px; margin: 0 auto; background: var(--card); border-radius: 16px; border: 1px solid #475569; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+        
+        /* 頂部視覺 */
+        .header { background: linear-gradient(to right, #0f172a, #1e293b); padding: 20px; text-align: center; border-bottom: 1px solid #334155; }
+        h1 { margin: 0; font-size: 20px; font-weight: 800; letter-spacing: 1px; color: #fff; }
+        .subtitle { font-size: 12px; color: #94a3b8; margin-top: 5px; }
+
+        /* 按鈕群 */
+        .btn-group { padding: 15px; display: flex; gap: 10px; }
+        .btn { flex: 1; padding: 12px; border: none; border-radius: 8px; font-weight: 700; cursor: pointer; transition: 0.2s; color: white; display: flex; align-items: center; justify-content: center; gap: 5px; }
+        .btn-auto { background: var(--blue); }
+        .btn-auto:active { opacity: 0.8; transform: scale(0.98); }
+        .btn-clear { background: #475569; max-width: 80px; }
+
+        /* 輸入區塊 */
+        .section { padding: 0 20px 15px 20px; }
+        .section-title { font-size: 12px; color: #94a3b8; font-weight: 700; text-transform: uppercase; margin-bottom: 10px; display: flex; align-items: center; gap: 8px; }
+        .section-title::before { content: ''; width: 3px; height: 12px; background: var(--blue); display: block; }
+        
+        .row { display: flex; gap: 10px; margin-bottom: 10px; }
+        .col { flex: 1; }
+        label { display: block; font-size: 11px; color: #cbd5e1; margin-bottom: 4px; }
+        input { width: 100%; background: var(--input-bg); border: 1px solid #475569; color: white; padding: 10px; border-radius: 6px; font-size: 16px; font-weight: 600; text-align: center; outline: none; box-sizing: border-box; }
+        input:focus { border-color: var(--blue); background: #1e293b; }
+        
+        .hl-input input { border-color: var(--gold); background: #3d2b08; } /* 高亮輸入框 */
+
+        /* 儀表板 (Dashboard) */
+        .dashboard { background: #020617; padding: 20px; margin: 20px; border-radius: 12px; border: 1px solid #1e293b; text-align: center; }
+        .verdict { font-size: 28px; font-weight: 900; margin-bottom: 5px; }
+        .confidence { font-size: 13px; color: #94a3b8; margin-bottom: 15px; }
+        .progress-bar { height: 6px; background: #333; border-radius: 3px; overflow: hidden; margin-bottom: 15px; }
+        .progress-fill { height: 100%; width: 50%; transition: 0.5s; }
+
+        /* 目標價卡片 */
+        .target-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        .target-card { background: #1e293b; border: 1px solid #334155; padding: 10px; border-radius: 8px; text-align: center; }
+        .target-label { font-size: 11px; color: #94a3b8; }
+        .target-price { font-size: 18px; font-weight: 800; margin-top: 2px; }
+        .target-desc { font-size: 10px; opacity: 0.7; }
+
+        /* 價差條 */
+        .spread-box { text-align: center; font-size: 12px; padding: 5px; background: #0f172a; border-radius: 4px; margin-bottom: 10px; color: #64748b; }
+
+        .red-text { color: var(--red); }
+        .green-text { color: var(--green); }
+        .gray-text { color: #94a3b8; }
+        
+        #loading { display: none; margin-left: 5px; animation: spin 1s infinite linear; }
+        @keyframes spin { 100% { transform: rotate(360deg); } }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="header">
+        <h1>🚀 台指決策核心</h1>
+        <div class="subtitle">六大因子 • 智能權重 • 目標預測</div>
+    </div>
+
+    <div class="btn-group">
+        <button class="btn btn-auto" onclick="autoFetch()">
+            ⚡ 自動抓取 (大盤/波動) <span id="loading">↻</span>
+        </button>
+        <button class="btn btn-clear" onclick="clearData()">🗑️</button>
+    </div>
+
+    <div class="section">
+        <div class="section-title">1. 價格與動能 (Price Action)</div>
+        <div class="row">
+            <div class="col">
+                <label>加權指數</label>
+                <input type="number" id="spot" disabled placeholder="自動">
+            </div>
+            <div class="col">
+                <label>ATR 波動</label>
+                <input type="number" id="atr" oninput="calc()">
+            </div>
+        </div>
+        <div class="row">
+            <div class="col hl-input">
+                <label>📍 台指期 (基準)</label>
+                <input type="number" id="tx" placeholder="輸入..." oninput="calc()">
+            </div>
+        </div>
+        <div id="spread-display" class="spread-box">等待輸入台指期...</div>
+    </div>
+
+    <div class="section">
+        <div class="section-title">2. 大戶籌碼 (Smart Money)</div>
+        <div class="row">
+            <div class="col">
+                <label>👽 外資淨口數</label>
+                <input type="number" id="foreign" placeholder="-25000" oninput="calc()">
+            </div>
+            <div class="col">
+                <label>🛡️ P/C Ratio (%)</label>
+                <input type="number" id="pc" placeholder="105" oninput="calc()">
+            </div>
+        </div>
+    </div>
+
+    <div class="section">
+        <div class="section-title">3. 散戶籌碼 (Counter)</div>
+        <div class="row">
+            <div class="col">
+                <label>小台淨口數</label>
+                <input type="number" id="mtx" placeholder="多單為正" oninput="calc()">
+            </div>
+            <div class="col">
+                <label>微台淨口數</label>
+                <input type="number" id="tmf" placeholder="空單為負" oninput="calc()">
+            </div>
+        </div>
+        <div style="font-size:10px; color:#64748b; text-align:center; margin-top:5px;">
+            *散戶淨口數 = (多單 - 空單)
+        </div>
+    </div>
+
+    <div class="dashboard">
+        <div id="verdict" class="verdict gray-text">等待數據</div>
+        <div id="confidence" class="confidence">請填寫上方 6 項常態分析因子</div>
+        
+        <div class="progress-bar">
+            <div id="prob-bar" class="progress-fill" style="background:#64748b; width:50%;"></div>
+        </div>
+
+        <div class="target-grid" id="targets" style="opacity:0.3">
+            <div class="target-card">
+                <div class="target-label">第一目標 (保守)</div>
+                <div class="target-price" id="tp1">--</div>
+                <div class="target-desc">ATR x 1.0</div>
+            </div>
+            <div class="target-card">
+                <div class="target-label">第二目標 (積極)</div>
+                <div class="target-price" id="tp2">--</div>
+                <div class="target-desc">ATR x 1.618</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    const ids = ['spot', 'atr', 'tx', 'foreign', 'pc', 'mtx', 'tmf'];
+
+    window.onload = () => {
+        ids.forEach(id => {
+            const v = localStorage.getItem(id);
+            if(v) document.getElementById(id).value = v;
+        });
+        calc();
+    };
+
+    async function autoFetch() {
+        const icon = document.getElementById('loading');
+        icon.style.display = 'inline-block';
+        try {
+            const ts = new Date().getTime();
+            const res = await fetch(`https://api.allorigins.win/get?url=${encodeURIComponent('https://query1.finance.yahoo.com/v8/finance/chart/%5ETWII?interval=1d&range=5d&_=' + ts)}`);
+            const data = await res.json();
+            const result = JSON.parse(data.contents).chart.result[0];
+            const quotes = result.indicators.quote[0];
+            const last = result.meta.regularMarketPrice;
+
+            // ATR Calc
+            let sum = 0, count = 0;
+            for(let i=0; i<quotes.high.length; i++) {
+                if(quotes.high[i]) { sum += (quotes.high[i] - quotes.low[i]); count++; }
+            }
+            const atr = count ? Math.round(sum/count) : 300;
+
+            document.getElementById('spot').value = Math.round(last);
+            document.getElementById('atr').value = atr;
+            
+            // Auto-fill TX if empty
+            if(!document.getElementById('tx').value) document.getElementById('tx').value = Math.round(last);
+
+            calc();
+        } catch(e) { alert('抓取失敗，請手動輸入'); }
+        icon.style.display = 'none';
+    }
+
+    function calc() {
+        // Save inputs
+        ids.forEach(id => {
+            const el = document.getElementById(id);
+            localStorage.setItem(id, el.value);
+        });
+
+        // Get Values
+        const tx = parseInt(document.getElementById('tx').value);
+        const spot = parseInt(document.getElementById('spot').value);
+        const atr = parseInt(document.getElementById('atr').value) || 250;
+        
+        const foreign = parseInt(document.getElementById('foreign').value) || 0;
+        const pc = parseFloat(document.getElementById('pc').value) || 100;
+        
+        const mtx = parseInt(document.getElementById('mtx').value) || 0;
+        const tmf = parseInt(document.getElementById('tmf').value) || 0;
+        // 散戶總淨單 (微台權重0.2)
+        const retail = mtx + (tmf * 0.2);
+
+        // --- 核心演算法 (Scoring) ---
+        let score = 0; // 正為多，負為空
+        let reasons = [];
+
+        // 1. 外資權重 (最高)
+        if (foreign > 10000) score += 30;
+        else if (foreign > 5000) score += 15;
+        else if (foreign < -20000) score -= 40; // 空單這陣子比較兇，權重加重
+        else if (foreign < -10000) score -= 25;
+
+        // 2. 散戶權重 (反向)
+        if (retail > 3000) score -= 25; // 散戶多 -> 空
+        else if (retail > 1500) score -= 10;
+        else if (retail < -3000) score += 25; // 散戶空 -> 多
+        else if (retail < -1500) score += 10;
+
+        // 3. P/C Ratio
+        if (pc > 110) score += 15;
+        else if (pc < 90) score -= 15;
+
+        // 4. 價差 (Spread)
+        let spread = 0;
+        const spreadBox = document.getElementById('spread-display');
+        if (tx && spot) {
+            spread = tx - spot;
+            spreadBox.innerText = `價差：${spread > 0 ? '+' : ''}${spread}`;
+            spreadBox.className = spread > 0 ? 'spread-box red-text' : 'spread-box green-text';
+            
+            // 價差過大判斷 (乖離)
+            if (spread > 100) score += 10; // 強勢
+            else if (spread < -100) score -= 10; // 弱勢
+        }
+
+        // --- 輸出結果 ---
+        const verdict = document.getElementById('verdict');
+        const conf = document.getElementById('confidence');
+        const bar = document.getElementById('prob-bar');
+        const targets = document.getElementById('targets');
+
+        if (!tx) return;
+
+        targets.style.opacity = "1";
+        
+        // 勝率模擬 (將 score -100~100 映射到 0~100%)
+        // 基礎分 50%，加上 score/2
+        let prob = 50 + (score / 2);
+        if (prob > 95) prob = 95;
+        if (prob < 5) prob = 5;
+
+        let trend = 0; // 1:多, -1:空
+
+        if (score >= 20) {
+            trend = 1;
+            verdict.innerText = "🚀 偏多操作";
+            verdict.className = "verdict red-text";
+            conf.innerText = `多方勝率預估：${prob.toFixed(0)}%`;
+            bar.style.background = `linear-gradient(to right, #ef4444 ${prob}%, #333 ${prob}%)`;
+            
+            // 目標價
+            document.getElementById('tp1').innerText = Math.round(tx + atr);
+            document.getElementById('tp1').style.color = "#ef4444";
+            document.getElementById('tp2').innerText = Math.round(tx + atr * 1.618);
+            document.getElementById('tp2').style.color = "#ef4444";
+
+        } else if (score <= -20) {
+            trend = -1;
+            verdict.innerText = "📉 偏空操作";
+            verdict.className = "verdict green-text";
+            conf.innerText = `空方勝率預估：${(100-prob).toFixed(0)}%`;
+            bar.style.background = `linear-gradient(to right, #10b981 ${100-prob}%, #333 ${100-prob}%)`;
+
+            // 目標價
+            document.getElementById('tp1').innerText = Math.round(tx - atr);
+            document.getElementById('tp1').style.color = "#10b981";
+            document.getElementById('tp2').innerText = Math.round(tx - atr * 1.618);
+            document.getElementById('tp2').style.color = "#10b981";
+
+        } else {
+            verdict.innerText = "⚖️ 區間震盪";
+            verdict.className = "verdict gray-text";
+            conf.innerText = "多空力道膠著，建議觀望或短進短出";
+            bar.style.background = "#64748b";
+            
+            document.getElementById('tp1').innerText = Math.round(tx + atr * 0.5);
+            document.getElementById('tp1').style.color = "#cbd5e1";
+            document.getElementById('tp2').innerText = Math.round(tx - atr * 0.5);
+            document.getElementById('tp2').style.color = "#cbd5e1";
+        }
+    }
+</script>
+
+</body>
+</html>
